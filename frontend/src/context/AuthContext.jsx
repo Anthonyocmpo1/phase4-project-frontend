@@ -1,68 +1,77 @@
-import { createContext, useState } from "react";
+import React, { createContext, useContext, useState } from 'react';
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext();  // Named export
 
 export const AuthProvider = ({ children }) => {
   const [authToken, setAuthToken] = useState(() => sessionStorage.getItem("token"));
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate(); // Declare navigate here
 
-  // LOGIN FUNCTION
+  // LOGIN
   const login = (email, password) => {
-    setIsLoading(true);
-    toast.loading("Logging you in ... ");
-    
-    fetch("https://phase4-project-farm-task-manager-2.onrender.com/auth/login", {
+    toast.loading("Logging you in ... ")
+    fetch("https://phase4-project-farm-task-manager-1.onrender.com/auth/login", {
       method: "POST",
-      headers: { "Content-type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    })
-      .then((resp) => resp.json())
-      .then((response) => {
-        setIsLoading(false);
-        toast.dismiss();
-
-        if (response.access_token) {
-          sessionStorage.setItem("token", response.access_token);
-          setAuthToken(response.access_token);
-          toast.success("Successfully Logged in");
-        } else {
-          toast.error(response.error || "Failed to login");
-        }
+      headers: {
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        email, password
       })
-      .catch(() => {
-        setIsLoading(false);
-        toast.dismiss();
-        toast.error("Network error, please try again later");
-      });
+    })
+    .then((resp) => resp.json())
+    .then((response) => {
+      if (response.access_token) {
+        toast.dismiss()
+        sessionStorage.setItem("token", response.access_token);
+        setAuthToken(response.access_token)
+
+        toast.success("Successfully Logged in")
+        navigate("/")
+      }
+      else if (response.error) {
+        toast.dismiss()
+        toast.error(response.error)
+      }
+      else {
+        toast.dismiss()
+        toast.error("Failed to login")
+      }
+    })
   };
 
   // REGISTER FUNCTION
-  const register = (username, email, password) => {
-    setIsLoading(true);
+  const register = (username, email, password, navigate) => {
     toast.loading("Registering ... ");
     
-    fetch("https://phase4-project-farm-task-manager-2.onrender.com/auth/register", {
+    fetch("https://phase4-project-farm-task-manager-1.onrender.com/auth/register", {
       method: "POST",
-      headers: { "Content-type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
+      headers: {
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify({ username, email, password })
     })
-      .then((resp) => resp.json())
-      .then((response) => {
-        setIsLoading(false);
-        toast.dismiss();
-
-        if (response.msg) {
-          toast.success(response.msg);
-        } else {
-          toast.error(response.error || "Failed to register");
-        }
-      })
-      .catch(() => {
-        setIsLoading(false);
-        toast.dismiss();
-        toast.error("Network error, please try again later");
-      });
+    .then((resp) => resp.json())
+    .then((response) => {
+      console.log(response);
+  
+      toast.dismiss();
+      
+      if (response.msg) {
+        toast.success(response.msg);
+        navigate("/login"); // Redirect to login page after successful registration
+      } else if (response.error) {
+        toast.error(response.error);
+      } else {
+        toast.error("Failed to add user.");
+      }
+    })
+    .catch((error) => {
+      toast.dismiss();
+      toast.error("An error occurred while registering.");
+    });
   };
 
   // LOGOUT FUNCTION
@@ -71,8 +80,10 @@ export const AuthProvider = ({ children }) => {
     setAuthToken(null);
   };
 
+  const data = { authToken, login, register, logout }; // Define data for context provider
+
   return (
-    <AuthContext.Provider value={{ authToken, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={data}>
       {children}
     </AuthContext.Provider>
   );

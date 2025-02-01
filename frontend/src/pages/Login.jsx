@@ -4,28 +4,23 @@ import { Link } from "react-router-dom"; // Import Link
 import { AuthContext } from "../context/AuthContext"; // Import AuthContext
 
 export default function Login() {
-  const { login, authToken } = useContext(AuthContext); // Get login function and authToken from context
-  const navigate = useNavigate(); // Initialize useNavigate
+  const { login, logout } = useContext(AuthContext);
+  const navigate = useNavigate(); // Initialize navigate function
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  // Redirect to home page if already logged in
-  useEffect(() => {
-    if (authToken) {
-      navigate("/"); // Redirect to home page if already logged in
-    }
-  }, [authToken, navigate]);
-
-  const handleSubmit = async (e) => {
+  // ====> To Handle form submission
+  const handleSubmit = (e) => {
     e.preventDefault();
+    login(email, password);
+    navigate("/"); // Redirect to home page after login
+  };
 
-    try {
-      await login(email, password); // Call login function
-      navigate("/"); // Redirect to home page after successful login
-    } catch (error) {
-      alert("Invalid login credentials.");
-    }
+  // ====> To Handle logout (if you have a logout functionality)
+  const handleLogout = () => {
+    logout();
+    navigate("/login"); // Redirect to login page after logout
   };
 
   return (
@@ -39,12 +34,25 @@ export default function Login() {
         <div className="relative mb-6">
           <label className="flex items-center mb-2 text-gray-600 text-sm font-medium">
             Email
+            <svg
+              width="7"
+              height="7"
+              className="ml-1"
+              viewBox="0 0 7 7"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3.11222 6.04545L3.20668 3.94744L1.43679 5.08594L0.894886 4.14134L2.77415 3.18182L0.894886 2.2223L1.43679 1.2777L3.20668 2.41619L3.11222 0.318182H4.19105L4.09659 2.41619L5.86648 1.2777L6.40838 2.2223L4.52912 3.18182L6.40838 4.14134L5.86648 5.08594L4.09659 3.94744L4.19105 6.04545H3.11222Z"
+                fill="#EF4444"
+              />
+            </svg>
           </label>
           <input
-            type="email"
+            type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="block w-full h-11 px-5 py-2.5 border border-gray-300 rounded-full"
+            className="block w-full h-11 px-5 py-2.5 bg-white leading-7 text-base font-normal shadow-xs text-gray-900 bg-transparent border border-gray-300 rounded-full placeholder-gray-400 focus:outline-none"
             placeholder="Enter Email"
             required
           />
@@ -53,12 +61,25 @@ export default function Login() {
         <div className="relative mb-6">
           <label className="flex items-center mb-2 text-gray-600 text-sm font-medium">
             Password
+            <svg
+              width="7"
+              height="7"
+              className="ml-1"
+              viewBox="0 0 7 7"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3.11222 6.04545L3.20668 3.94744L1.43679 5.08594L0.894886 4.14134L2.77415 3.18182L0.894886 2.2223L1.43679 1.2777L3.20668 2.41619L3.11222 0.318182H4.19105L4.09659 2.41619L5.86648 1.2777L6.40838 2.2223L4.52912 3.18182L6.40838 4.14134L5.86648 5.08594L4.09659 3.94744L4.19105 6.04545H3.11222Z"
+                fill="#EF4444"
+              />
+            </svg>
           </label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="block w-full h-11 px-5 py-2.5 border border-gray-300 rounded-full"
+            className="block w-full h-11 px-5 py-2.5 bg-white leading-7 text-base font-normal shadow-xs text-gray-900 bg-transparent border border-gray-300 rounded-full placeholder-gray-400 focus:outline-none"
             placeholder="Password"
             required
           />
@@ -66,16 +87,13 @@ export default function Login() {
 
         <button
           type="submit"
-          className="w-full h-12 bg-orange-600 hover:bg-orange-800 transition-all duration-700 rounded-full text-white text-base font-semibold mb-6"
+          className="w-full h-12 bg-orange-600 hover:bg-orange-800 transition-all duration-700 rounded-full shadow-xs text-white text-base font-semibold leading-6 mb-6"
         >
           Sign in
         </button>
 
         <div>
-          Not yet registered?{" "}
-          <Link to="/register" className="text-orange-500">
-            Register
-          </Link>
+          Not yet registered? <Link to="/register" className="text-orange-500">Register</Link>
         </div>
       </form>
     </div>

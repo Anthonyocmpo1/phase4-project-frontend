@@ -1,25 +1,27 @@
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';// Default import
+import { AuthContext } from '../context/AuthContext'; // Default import
 import { Link } from 'react-router-dom'; // Add this line for Link
 
 export default function Register() {
-  const { register } = useContext(AuthContext); // Get the register function from context
-  const navigate = useNavigate();
+  const { register } = useContext(AuthContext); // Assuming register is provided in your AuthContext
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [repeatPassword, setRepeatPassword] = useState('');
 
-  const handleSubmit = async (e) => {
+  // ====> To Handle form submission
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    try {
-      await register(username, email, password); // Call register function
-      navigate("/login"); // Redirect to login after successful registration
-    } catch (error) {
-      alert("Failed to register.");
+    if (password !== repeatPassword) {
+      alert("Passwords don't match");
+      return;
     }
+
+    // Now using register function instead of addUser
+    register(username, email, password); // Assuming register handles the user creation
   };
 
   return (
@@ -38,7 +40,7 @@ export default function Register() {
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="block w-full h-11 px-5 py-2.5 border border-gray-300 rounded-full"
+            className="block w-full h-11 px-5 py-2.5 bg-white leading-7 text-base font-normal shadow-xs text-gray-900 bg-transparent border border-gray-300 rounded-full placeholder-gray-400 focus:outline-none"
             placeholder="Enter Username"
             required
           />
@@ -52,7 +54,7 @@ export default function Register() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="block w-full h-11 px-5 py-2.5 border border-gray-300 rounded-full"
+            className="block w-full h-11 px-5 py-2.5 bg-white leading-7 text-base font-normal shadow-xs text-gray-900 bg-transparent border border-gray-300 rounded-full placeholder-gray-400 focus:outline-none"
             placeholder="Enter Email"
             required
           />
@@ -66,21 +68,35 @@ export default function Register() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="block w-full h-11 px-5 py-2.5 border border-gray-300 rounded-full"
-            placeholder="Enter Password"
+            className="block w-full h-11 px-5 py-2.5 bg-white leading-7 text-base font-normal shadow-xs text-gray-900 bg-transparent border border-gray-300 rounded-full placeholder-gray-400 focus:outline-none"
+            placeholder="Password"
+            required
+          />
+        </div>
+
+        <div className="relative mb-6">
+          <label className="flex items-center mb-2 text-gray-600 text-sm font-medium">
+            Repeat Password
+          </label>
+          <input
+            type="password"
+            value={repeatPassword}
+            onChange={(e) => setRepeatPassword(e.target.value)}
+            className="block w-full h-11 px-5 py-2.5 bg-white leading-7 text-base font-normal shadow-xs text-gray-900 bg-transparent border border-gray-300 rounded-full placeholder-gray-400 focus:outline-none"
+            placeholder="Repeat Password"
             required
           />
         </div>
 
         <button
           type="submit"
-          className="w-full h-12 bg-orange-600 hover:bg-orange-800 transition-all duration-700 rounded-full text-white text-base font-semibold mb-6"
+          className="w-full h-12 bg-orange-600 hover:bg-orange-800 transition-all duration-700 rounded-full shadow-xs text-white text-base font-semibold leading-6 mb-6"
         >
-          Register
+          Sign Up
         </button>
 
         <div>
-          Already registered? <Link to="/login" className='text-orange-500'>Login</Link>
+          Already have an account? <Link to="/login" className="text-orange-500">Login</Link>
         </div>
       </form>
     </div>

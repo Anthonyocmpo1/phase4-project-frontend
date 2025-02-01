@@ -1,9 +1,11 @@
+import React from 'react';
 import { useState } from 'react';
 import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { FarmProvider } from './context/FarmContext';
 
 
 import Layout from './components/Layout'
@@ -22,6 +24,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+      <FarmProvider>
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
@@ -31,12 +34,13 @@ function App() {
               Only show these pages if the user is authenticated (has an authToken)
             */}
             <Route path="workers" element={<Workers />} />
-            <Route path="workerTasks" element={<WorkerTasks />} />
+            <Route path="workersTasks" element={<WorkerTasks />} />
             <Route path="farms" element={<Farms />} />
             <Route path="tasks" element={<Tasks />} />
             <Route path="*" element={<NoPage />} />
           </Route>
         </Routes>
+        </FarmProvider>
       </AuthProvider>
     </BrowserRouter>
   );
