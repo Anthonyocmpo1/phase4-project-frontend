@@ -1,28 +1,31 @@
-import { useEffect, useState, useContext } from "react";
+import { useState, useContext } from "react";
 import { FarmContext } from "../context/FarmContext";
 import { toast } from "react-toastify";
 
 export default function Farms() {
   const farmContext = useContext(FarmContext);
-
   const { farms, addFarm, updateFarm, deleteFarm } = farmContext || {};
 
   const [formData, setFormData] = useState({ name: "", size: "", location: "" });
   const [selectedFarm, setSelectedFarm] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Handle form input changes
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle form submission (Add / Update farm)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
       if (selectedFarm) {
-        await updateFarm(selectedFarm.id, formData.name, formData.location, formData.size); // Pass parameters correctly
-        toast.success("Farm updated successfully!");
+        const updatedFarm = { name: formData.name, location: formData.location, size: formData.size };
+        const response = await updateFarm(selectedFarm.id, updatedFarm);
+        response?.success ? toast.success("Farm updated successfully!") : toast.error("Failed to update farm.");
       } else {
         await addFarm(formData.name, formData.location, formData.size);
         toast.success("Farm added successfully!");
@@ -31,33 +34,36 @@ export default function Farms() {
       setFormData({ name: "", size: "", location: "" });
       setSelectedFarm(null);
     } catch (error) {
+      console.error("Update error:", error);
       toast.error("Something went wrong.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Handle farm deletion
+  // const handleDelete = async (id) => {
+  //   if (window.confirm("Are you sure you want to delete this farm?")) {
+  //     setIsLoading(true);
+  //     try {
+  //       const response = await deleteFarm(id);
+  //       response?.success ? toast.message("Farm deleted successfully!") : toast.error("Failed to delete farm.");
+  //     } catch (error) {
+  //       console.error("Delete error:", error);
+  //       toast.error("Error deleting farm.");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   }
+  // };
+
+  // Handle farm edit (populate form)
   const handleEdit = (farm) => {
     setSelectedFarm(farm);
     setFormData({ name: farm.name, size: farm.size, location: farm.location });
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this farm?")) {
-      setIsLoading(true);
-
-      try {
-        await deleteFarm(id);
-        toast.success("Farm deleted successfully!");
-      } catch (error) {
-        toast.error("Error deleting farm.");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  // Sample farm data (if no farms are fetched or for testing purposes)
+  // Sample data if no farms are available
   const sampleFarms = [
     { id: 1, name: "Green Valley Farm", size: "120 acres", location: "Texas, USA" },
     { id: 2, name: "Sunset Acres", size: "80 acres", location: "California, USA" },
@@ -119,7 +125,7 @@ export default function Farms() {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(farm.id)}
+                    onClick={() => deleteFarm(farm.id)}
                     className="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600"
                   >
                     Delete

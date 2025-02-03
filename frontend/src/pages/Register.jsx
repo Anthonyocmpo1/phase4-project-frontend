@@ -5,9 +5,11 @@ import { Link } from 'react-router-dom'; // Add this line for Link
 
 export default function Register() {
   const { register } = useContext(AuthContext); // Assuming register is provided in your AuthContext
+  const navigate = useNavigate(); // Get navigate function from react-router-dom
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState(``);
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
 
@@ -20,8 +22,8 @@ export default function Register() {
       return;
     }
 
-    // Now using register function instead of addUser
-    register(username, email, password); // Assuming register handles the user creation
+    // Now passing navigate as an argument to register function
+    register(username, email, role, password, navigate); // Ensure register function in AuthContext accepts navigate
   };
 
   return (
@@ -54,6 +56,19 @@ export default function Register() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="block w-full h-11 px-5 py-2.5 bg-white leading-7 text-base font-normal shadow-xs text-gray-900 bg-transparent border border-gray-300 rounded-full placeholder-gray-400 focus:outline-none"
+            placeholder="Enter Email"
+            required
+          />
+        </div>
+        <div className="relative mb-6">
+          <label className="flex items-center mb-2 text-gray-600 text-sm font-medium">
+            Role
+          </label>
+          <input
+            type="Role"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
             className="block w-full h-11 px-5 py-2.5 bg-white leading-7 text-base font-normal shadow-xs text-gray-900 bg-transparent border border-gray-300 rounded-full placeholder-gray-400 focus:outline-none"
             placeholder="Enter Email"
             required

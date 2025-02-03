@@ -6,6 +6,7 @@ import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { FarmProvider } from './context/FarmContext';
+import { ToastContainer } from 'react-toastify';
 
 
 import Layout from './components/Layout'
@@ -25,6 +26,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
       <FarmProvider>
+      <ToastContainer />
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />

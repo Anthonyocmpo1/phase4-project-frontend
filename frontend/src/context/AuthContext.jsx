@@ -43,37 +43,53 @@ export const AuthProvider = ({ children }) => {
   };
 
   // REGISTER FUNCTION
-  const register = (username, email, password, navigate) => {
-    toast.loading("Registering ... ");
-    
+  const register = (username, email, role, password, navigate) => {
+    toast.loading("Registering...");
+  
+    const requestBody = JSON.stringify({ username, email, role, password });
+    console.log("Request Body:", requestBody); // Log the request being sent
+  
     fetch("https://phase4-project-farm-task-manager-1.onrender.com/auth/register", {
       method: "POST",
       headers: {
-        'Content-type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ username, email, password })
+      body: requestBody,
     })
-    .then((resp) => resp.json())
-    .then((response) => {
-      console.log(response);
+      .then(async (resp) => {
+        console.log("Raw Response:", resp);
+        const responseText = await resp.text(); // Read raw response text
+        console.log("Response Text:", responseText);
   
-      toast.dismiss();
-      
-      if (response.msg) {
-        toast.success(response.msg);
-        navigate("/login"); // Redirect to login page after successful registration
-      } else if (response.error) {
-        toast.error(response.error);
-      } else {
-        toast.error("Failed to add user.");
-      }
-    })
-    .catch((error) => {
-      toast.dismiss();
-      toast.error("An error occurred while registering.");
-    });
+        try {
+          return JSON.parse(responseText); // Try parsing as JSON
+        } catch {
+          return { error: "Invalid JSON response from server" };
+        }
+      })
+      .then((response) => {
+        console.log("Parsed Response:", response); // Log parsed response
+        toast.dismiss();
+  
+        if (response?.message) { // Corrected to use 'message' instead of 'msg'
+          toast.success(response.message); // Show success message
+          setTimeout(() => {
+            navigate("/login"); // Redirect after 2 seconds
+          }, 2000);
+        } else if (response?.error) {
+          toast.error(response.error); // Show error message
+        } else {
+          toast.error("Registration failed. Please try again.");
+        }
+      })
+      .catch((error) => {
+        toast.dismiss();
+        console.error("Registration error:", error);
+        toast.error("An error occurred while registering.");
+      });
   };
-
+  
+  
   // LOGOUT FUNCTION
   const logout = () => {
     sessionStorage.removeItem("token");

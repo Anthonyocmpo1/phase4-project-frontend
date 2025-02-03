@@ -1,32 +1,41 @@
 import React, { useState, useContext } from 'react';
 import { FarmContext } from '../context/FarmContext';
+import { toast } from 'react-toastify';
 
 const Task = () => {
-    const { tasks, addTask, updateTask, deleteTask } = useContext(FarmContext);
+    const { farms, tasks, addTask, updateTask, deleteTask } = useContext(FarmContext);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [deadline, setDeadline] = useState('');
+    const [farmId, setFarmId] = useState('');
     const [taskDescription, setTaskDescription] = useState('');
     const [selectedTask, setSelectedTask] = useState(null);
-    const [workerId, setWorkerId] = useState('');
 
+    // Function to handle adding a task
     const handleAddTask = () => {
-        if (taskDescription && workerId) {
-            addTask(taskDescription, workerId);
-            setTaskDescription('');
-            setWorkerId('');
-        } else {
-            alert('Please fill in all fields');
+        if (!title || !farmId || !deadline || !description ) {
+            toast.error("Title and Farm ID are required!");
+            return;
         }
+        addTask(title, description, deadline, farmId);
+        setTitle('');  // fixed: use single quotes
+        setFarmId('');  // fixed: use single quotes
+        setDeadline('');  // fixed: use single quotes
+        setDescription('');  // fixed: use single quotes
     };
 
+    // Function to handle updating a task
     const handleUpdateTask = (id) => {
         if (taskDescription) {
             updateTask(id, taskDescription);
             setTaskDescription('');
             setSelectedTask(null);
         } else {
-            alert('Please provide a description for the task');
+            toast.error('Please provide a description for the task');
         }
     };
 
+    // Function to handle deleting a task
     const handleDeleteTask = (id) => {
         deleteTask(id);
     };
@@ -34,25 +43,39 @@ const Task = () => {
     return (
         <div className="bg-gray-50 min-h-screen py-8 px-4">
             <h1 className="text-4xl font-bold text-center text-indigo-600 mb-6">Farm Task Management</h1>
-            
+
             {/* Add Task Form */}
             <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg space-y-4">
                 <h2 className="text-2xl font-semibold text-gray-800">Add New Task</h2>
                 <div className="space-y-4">
                     <input
                         type="text"
-                        value={taskDescription}
-                        onChange={(e) => setTaskDescription(e.target.value)}
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Task Title"
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <input
+                        type="text"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
                         placeholder="Task Description"
                         className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <input
-                        type="number"
-                        value={workerId}
-                        onChange={(e) => setWorkerId(e.target.value)}
-                        placeholder="Worker ID"
+                        type="date"
+                        value={deadline}
+                        onChange={(e) => setDeadline(e.target.value)}
+                        placeholder="Task Deadline"
                         className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
+                    <select onChange={(e) => setFarmId(e.target.value)} className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" >
+                        <option value="">Select</option>
+                        {farms && farms.map((farm) => (
+                            <option value={farm.id} key={farm.id}>{farm.name}</option>
+                        ))}
+                    </select>
+
                     <button
                         onClick={handleAddTask}
                         className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition duration-300"
@@ -61,62 +84,6 @@ const Task = () => {
                     </button>
                 </div>
             </div>
-
-            {/* Task List */}
-            <div className="mt-10 max-w-3xl mx-auto">
-                <h2 className="text-3xl font-semibold text-gray-800 mb-4">Tasks List</h2>
-                <ul className="space-y-4">
-                    {tasks.map((task) => (
-                        <li key={task.id} className="bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:bg-gray-50">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <p className="text-lg font-medium text-gray-700">{task.description}</p>
-                                    <p className="text-sm text-gray-500">Worker ID: {task.workerId}</p>
-                                </div>
-                                <div className="space-x-3">
-                                    <button
-                                        onClick={() => {
-                                            setSelectedTask(task);
-                                            setTaskDescription(task.description);
-                                        }}
-                                        className="text-indigo-600 hover:text-indigo-800 font-semibold"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteTask(task.id)}
-                                        className="text-red-600 hover:text-red-800 font-semibold"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-
-            {/* Update Task Form */}
-            {selectedTask && (
-                <div className="mt-10 max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg space-y-4">
-                    <h2 className="text-2xl font-semibold text-gray-800">Update Task</h2>
-                    <div className="space-y-4">
-                        <input
-                            type="text"
-                            value={taskDescription}
-                            onChange={(e) => setTaskDescription(e.target.value)}
-                            placeholder="Updated Task Description"
-                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <button
-                            onClick={() => handleUpdateTask(selectedTask.id)}
-                            className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition duration-300"
-                        >
-                            Update Task
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

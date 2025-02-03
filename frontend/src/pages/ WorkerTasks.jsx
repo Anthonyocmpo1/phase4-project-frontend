@@ -8,18 +8,30 @@ const WorkerTask = () => {
   const [newTask, setNewTask] = useState({ worker_name: "", worker_id: "", title: "", farm_name: "", deadline: "" });
   const [editingTaskId, setEditingTaskId] = useState(null); // Track which task is being edited
 
-  const handleAddTask = () => {
+  const handleAddTask = async () => {
+    if (!newTask.worker_name || !newTask.worker_id || !newTask.title || !newTask.farm_name || !newTask.deadline) {
+      toast.dismiss();
+      toast.error("Please fill in all fields.");
+      return;
+    }
+
     const addedTask = {
       id: tasks.length + 1,
       ...newTask,
-      status: "Pending"
+      status: "Pending",
     };
-    addTask(addedTask);
-    setNewTask({ worker_name: "", worker_id: "", title: "", farm_name: "", deadline: "" });
+
+    try {
+      await addTask(addedTask);  // Assuming addTask is async
+      setNewTask({ worker_name: "", worker_id: "", title: "", farm_name: "", deadline: "" });
+    } catch (error) {
+      toast.error("Error adding task");
+    }
   };
 
   const handleDeleteTask = (taskId) => {
     deleteTask(taskId);
+    toast.success("Task deleted successfully!");
   };
 
   const handleUpdateTaskStatus = (taskId, status) => {

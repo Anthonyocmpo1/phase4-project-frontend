@@ -1,12 +1,14 @@
-import React, { createContext, useContext, useState, useEffect } from "react"; // Ensure createContext is imported
+import React, { createContext, useContext, useState, useEffect } from "react"; 
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "./AuthContext";
-export const FarmContext = createContext();  // This creates the context
+import { toast } from 'react-toastify'; // Ensure toast is imported for notifications
+
+export const FarmContext = createContext();
 
 export const FarmProvider = ({ children }) => {
     const navigate = useNavigate();
     const { authToken } = useContext(AuthContext);
-    
+
     const [farms, setFarms] = useState([]);
     const [workers, setWorkers] = useState([]);
     const [tasks, setTasks] = useState([]);
@@ -15,31 +17,37 @@ export const FarmProvider = ({ children }) => {
     // ================================ FETCH FARMS =====================================
     useEffect(() => {
         if (!authToken) return;
-        
+
+        toast.loading("Loading farms ...");
         fetch("https://phase4-project-farm-task-manager-1.onrender.com/farm/farms", {
             method: "GET",
             headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${sessionStorage.getItem("token")}`,
+               'Content-type': 'application/json',
+                Authorization: `Bearer ${authToken}`,
             },
         })
         .then((response) => response.json())
         .then((response) => {
             if (Array.isArray(response.farms)) {
                 setFarms(response.farms);
+                toast.dismiss();
             } else {
                 console.error("Unexpected response format:", response);
                 setFarms([]);
+                toast.dismiss();
+                toast.error("Failed to load farms.");
             }
         })
         .catch((error) => {
             console.error("Error fetching farms:", error);
+            toast.dismiss();
+            toast.error("Error fetching farms.");
         });
-    }, [onChange, authToken]);
+    }, [onChange]);
 
     // ================================ FARM FUNCTIONS =====================================
-    const addFarm = (name, location) => {
-        if (!name || !location) {
+    const addFarm = (name, location, size) => {
+        if (!name || !location  || !size) {
             toast.dismiss();
             toast.error("Farm name and location are required!");
             return;
@@ -52,13 +60,13 @@ export const FarmProvider = ({ children }) => {
                 'Content-type': 'application/json',
                 Authorization: `Bearer ${authToken}`,
             },
-            body: JSON.stringify({ name, location })
+            body: JSON.stringify({ name,  location, size })
         })
         .then((resp) => resp.json())
         .then((response) => {
             if (response.success && response.farm) {
                 toast.dismiss();
-                toast.success(response.success);
+                toast.success("Farm added successfully!");
                 setFarms((prevFarms) => [...prevFarms, response.farm]);
             } else {
                 toast.dismiss();
@@ -81,7 +89,7 @@ export const FarmProvider = ({ children }) => {
         }
 
         toast.loading("Adding worker ... ");
-        fetch("https://phase4-project-farm-task-manager-1.onrender.com/farm/add_worker", {
+        fetch("https://phase4-project-farm-task-manager-1.onrender.com/worker/add_worker", {
             method: "POST",
             headers: {
                 'Content-type': 'application/json',
@@ -93,7 +101,7 @@ export const FarmProvider = ({ children }) => {
         .then((response) => {
             if (response.success && response.worker) {
                 toast.dismiss();
-                toast.success(response.success);
+                toast.success("Worker added successfully!");
                 setWorkers((prevWorkers) => [...prevWorkers, response.worker]);
             } else {
                 toast.dismiss();
@@ -109,7 +117,7 @@ export const FarmProvider = ({ children }) => {
 
     const updateWorker = (id, name, role) => {
         toast.loading("Updating worker ... ");
-        fetch(`https://phase4-project-farm-task-manager-1.onrender.com/farm/update_worker/${id}`, {
+        fetch(`https://phase4-project-farm-task-manager-1.onrender.com/worker/update_worker/${id}`, {
             method: "PUT",
             headers: {
                 'Content-type': 'application/json',
@@ -121,18 +129,23 @@ export const FarmProvider = ({ children }) => {
         .then((response) => {
             if (response.success) {
                 toast.dismiss();
-                toast.success(response.success);
+                toast.success("Worker updated successfully!");
                 setOnChange(!onChange);
             } else {
                 toast.dismiss();
                 toast.error(response.error || "Failed to update worker");
             }
+        })
+        .catch((error) => {
+            toast.dismiss();
+            toast.error("Error updating worker");
+            console.error("Error:", error);
         });
     };
 
     const deleteWorker = (id) => {
         toast.loading("Deleting worker ... ");
-        fetch(`https://phase4-project-farm-task-manager-1.onrender.com/farm/delete_worker/${id}`, {
+        fetch(`https://phase4-project-farm-task-manager-1.onrender.com/worker/delete_worker/${id}`, {
             method: "DELETE",
             headers: {
                 'Content-type': 'application/json',
@@ -143,7 +156,7 @@ export const FarmProvider = ({ children }) => {
         .then((response) => {
             if (response.success) {
                 toast.dismiss();
-                toast.success(response.success);
+                toast.success("Worker deleted successfully!");
                 setWorkers((prevWorkers) => prevWorkers.filter(worker => worker.id !== id));
             } else {
                 toast.dismiss();
@@ -158,43 +171,46 @@ export const FarmProvider = ({ children }) => {
     };
 
     // ================================ TASK FUNCTIONS =====================================
-    const addTask = (description, workerId) => {
-        if (!description || !workerId) {
-            toast.dismiss();
-            toast.error("Description and worker ID are required for the task!");
-            return;
-        }
-
-        toast.loading("Adding task ... ");
-        fetch("https://phase4-project-farm-task-manager-1.onrender.com/farm/add_task", {
+    const addTask = (title, description, deadline, farmId) => {
+        
+    
+        toast.loading("Adding task ... ")
+        fetch("https://phase4-project-farm-task-manager-1.onrender.com/task/add_task", {
             method: "POST",
             headers: {
                 'Content-type': 'application/json',
                 Authorization: `Bearer ${authToken}`,
             },
-            body: JSON.stringify({ description, workerId })
+            body: JSON.stringify({
+                title, description, deadline, farmId
+            }),
         })
         .then((resp) => resp.json())
         .then((response) => {
-            if (response.success && response.task) {
-                toast.dismiss();
-                toast.success(response.success);
-                setTasks((prevTasks) => [...prevTasks, response.task]);
-            } else {
-                toast.dismiss();
-                toast.error(response.error || "Failed to add task");
+            console.log( response);
+    
+            if(response.success){
+                toast.dismiss()
+                toast.success(response.success)
+                setOnChange(!onChange)
             }
-        })
-        .catch((error) => {
-            toast.dismiss();
-            toast.error("Error adding task");
-            console.error("Error:", error);
+            else if(response.error){
+                toast.dismiss()
+                toast.error(response.error)
+
+            }
+            else{
+                toast.dismiss()
+                toast.error("Failed to add")
+
+            }
         });
     };
+    
 
-    const updateTask = (id, description) => {
+    const updateTask = (title, description, deadline,  farmId) => {
         toast.loading("Updating task ... ");
-        fetch(`https://phase4-project-farm-task-manager-1.onrender.com/farm/update_task/${id}`, {
+        fetch(`https://phase4-project-farm-task-manager-1.onrender.com/task/update_task/${id}`, {
             method: "PUT",
             headers: {
                 'Content-type': 'application/json',
@@ -206,18 +222,23 @@ export const FarmProvider = ({ children }) => {
         .then((response) => {
             if (response.success) {
                 toast.dismiss();
-                toast.success(response.success);
+                toast.success("Task updated successfully!");
                 setOnChange(!onChange);
             } else {
                 toast.dismiss();
                 toast.error(response.error || "Failed to update task");
             }
+        })
+        .catch((error) => {
+            toast.dismiss();
+            toast.error("Error updating task");
+            console.error("Error:", error);
         });
     };
 
     const deleteTask = (id) => {
         toast.loading("Deleting task ... ");
-        fetch(`https://phase4-project-farm-task-manager-1.onrender.com/farm/delete_task/${id}`, {
+        fetch(`https://phase4-project-farm-task-manager-1.onrender.com/task/delete_task/${id}`, {
             method: "DELETE",
             headers: {
                 'Content-type': 'application/json',
@@ -228,7 +249,7 @@ export const FarmProvider = ({ children }) => {
         .then((response) => {
             if (response.success) {
                 toast.dismiss();
-                toast.success(response.success);
+                toast.success("Task deleted successfully!");
                 setTasks((prevTasks) => prevTasks.filter(task => task.id !== id));
             } else {
                 toast.dismiss();
@@ -249,45 +270,32 @@ export const FarmProvider = ({ children }) => {
             method: "DELETE",
             headers: {
                 'Content-type': 'application/json',
-                Authorization: `Bearer ${authToken}`
+                Authorization: `Bearer ${authToken}`,
             }
         })
         .then((resp) => resp.json())
         .then((response) => {
-            if (response.success) {
+            if (response.message) {
                 toast.dismiss();
-                toast.success(response.success);
+                toast.message("Farm deleted successfully!");
                 setFarms((prevFarms) => prevFarms.filter(farm => farm.id !== id));
-                navigate("/");
-            } else {
+            } else if (response.error) {
                 toast.dismiss();
-                toast.error(response.error || "Failed to delete farm");
+                toast.error(response.error);
+            } else {
+              toast.dismiss();
+              toast.error("Failed to delect farm");
             }
         })
-        .catch((error) => {
-            toast.dismiss();
-            toast.error("Error deleting farm");
-            console.error("Error:", error);
-        });
+        // .catch((error) => {
+        //     toast.dismiss();
+        //     toast.error("Error deleting farm");
+        //     console.error("Error:", error);
+        // });
     };
-
-    const data = {
-        farms,
-        addFarm,  // If addFarm is defined
-        deleteFarm,
-        workers,
-        addWorker,
-        updateWorker,
-        deleteWorker,
-        tasks,
-        addTask,
-        updateTask,
-        deleteTask
-    };
-    
 
     return (
-        <FarmContext.Provider value={data}>
+        <FarmContext.Provider value={{ farms, workers, tasks, addFarm, addWorker, updateWorker, deleteWorker, addTask, updateTask, deleteTask, deleteFarm }}>
             {children}
         </FarmContext.Provider>
     );
